@@ -16,9 +16,11 @@ import pytest
 def test_bid_is_lower_than_ask(base_url, pair, result_key):
     response = requests.get(f"{base_url}/Ticker", params={"pair": pair})
 
-    assert response.status_code == 200
+    assert response.status_code == 200, (
+        f"{pair}: unexpected status {response.status_code}. Body: {response.text}"
+    )
     body = response.json()
-    assert body["error"] == []
+    assert body["error"] == [], f"{pair}: API returned errors: {body['error']}"
 
     ticker = body["result"][result_key]
     ask = Decimal(ticker["a"][0])
