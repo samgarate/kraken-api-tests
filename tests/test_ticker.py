@@ -1,16 +1,26 @@
 from decimal import Decimal
 
 import requests
+import pytest
 
 
-def test_btc_usd_bid_is_lower_than_ask(base_url):
-    response = requests.get(f"{base_url}/Ticker", params={"pair": "XBTUSD"})
+@pytest.mark.parametrize(
+    ("pair", "result_key"),
+    [
+        ("XBTUSD", "XXBTZUSD"),
+        ("ETHUSD", "XETHZUSD"),
+        ("XBTEUR", "XXBTZEUR"),
+        ("SOLUSD", "SOLUSD"),
+    ],
+)
+def test_bid_is_lower_than_ask(base_url, pair, result_key):
+    response = requests.get(f"{base_url}/Ticker", params={"pair": pair})
 
     assert response.status_code == 200
     body = response.json()
     assert body["error"] == []
 
-    ticker = body["result"]["XXBTZUSD"]
+    ticker = body["result"][result_key]
     ask = Decimal(ticker["a"][0])
     bid = Decimal(ticker["b"][0])
 
@@ -26,4 +36,4 @@ def test_unknown_pair_returns_an_error(base_url):
     assert response.status_code == 200
     body = response.json()
     assert body["error"] != []
-    assert "Unknown asset pair" in body["error"][0]   
+    assert "Unknown asset pair" in body["error"][0]
