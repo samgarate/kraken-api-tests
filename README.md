@@ -24,7 +24,9 @@ pytest -v
 | Area | Test | What it checks |
 | --- | --- | --- |
 | Smoke | `test_server_time_is_available` | The API is up and returns the server time |
-| Business rules | `test_bid_is_lower_than_ask` | For 4 trading pairs, the bid is positive and lower than the ask |
+| Business rules | `test_bid_is_lower_than_ask`    | For 4 trading pairs, the bid is positive and lower than the ask |
+| Business rules | `test_order_book_shows_bidask_orders_for_pair`   | Best bid is lower than the best ask |
+| Boundaries  | `test_returns_expected_number_of_levels_for_count`   | The results match the expected requests |
 | Negative | `test_unknown_pair_returns_an_error` | An unknown pair returns a clear error |
 | Performance | `test_endpoint_responds_within_threshold` | Key endpoints respond within 2 seconds |
 
@@ -46,6 +48,11 @@ The error is only reported in the error field of the response body.
 Older assets like BTC and ETH use the X and Z prefixes, but newer ones like Solana don’t.
 **Risk:** code that builds the key with a fixed pattern would fail for newer assets.
 **Coverage:** the parametrized test maps each pair to result_key, and includes SOLUSD to cover the exception.
+
+###Finding 3: The count range of results is 1-500. 
+Any request outside the range [1,500] will return by default 100 counts. 
+**Risk:** if it's not taken into account, the user may think he's working with the full request. 
+**Coverage:** the parametrized test takes into account boundary and inside values to validate the count matches the request and outside boundaries values to validate 100 count is returned by default with no errors. 
 
 ## Next steps
 
