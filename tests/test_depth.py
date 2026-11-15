@@ -29,9 +29,9 @@ def test_order_book_shows_bidask_orders_for_pair(base_url, pair, result_key):
 
 @pytest.mark.parametrize(
     ("count", "result_count"),
-    [(1, 1), (500, 500), (0, 100), (501, 100)],
+    [(0, 100), (1, 1), (50, 50), (500, 500), (501, 100)],
 )
-def test_returns_expected_match_count_paramter(base_url, count, result_count):
+def test_returns_expected_number_of_levels_for_count(base_url, count, result_count):
     response = requests.get(
         f"{base_url}/Depth", params={"pair": "XBTUSD", "count": count}
     )
@@ -46,3 +46,15 @@ def test_returns_expected_match_count_paramter(base_url, count, result_count):
 
     assert result_count == len(asks), f"Requested {count} ask levels, got {len(asks)}"
     assert result_count == len(bids), f"Requested {count} bid levels, got {len(bids)}"
+
+
+def test_unknown_pair_returns_error(base_url):
+    response = requests.get(f"{base_url}/Depth", params={"pair": "PATATA"})
+
+    # Kraken returns HTTP 200 even for invalid requests;
+    # the error is only reported in the response body.
+    assert response.status_code == 200, (
+        f"PATATA: unexpected status {response.status_code}. Body: {response.text}"
+    )
+    body = response.json()
+    assert body["error"] == ["EQuery:Unknown asset pair"]
