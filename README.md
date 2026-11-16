@@ -40,15 +40,21 @@ pytest -v
 - **Generous performance threshold** to avoid flaky failures caused by network noise.
 
 ## Findings
-### Finding 1: Kraken’s API returns HTTP 200 even when the request is invalid. 
+### 1. HTTP 200 for invalid requests
 
-The error is only reported in the error field of the response body.
+Kraken's API returns HTTP `200` even when the request is invalid. The error is only reported in the `error` field of the response body.
 
-**Risk:** a client or a test that only checks the status would treat the test as successful.
+**Risk:** a client or a test that only checks the status code would treat a failed request as successful.
 
-**Coverage:** all my tests check both status and error field.
+**Coverage:** all my tests check both the status code and the `error` field.
 
-### Finding 2: When requesting XBTUSD, the API returns the key XXBTZUSD. 
+### 2. Inconsistent pair naming
+
+When requesting `XBTUSD`, the API returns the key `XXBTZUSD`. Older assets like BTC and ETH use the `X` and `Z` prefixes, but newer ones like SOL don't (`SOLUSD`).
+
+**Risk:** code that builds the key with a fixed pattern would fail for newer assets.
+
+**Coverage:** the parametrized test maps each pair to its expected result key, and includes `SOLUSD` to cover the exception.
 
 Older assets like BTC and ETH use the X and Z prefixes, but newer ones like Solana don’t.
 
@@ -56,7 +62,7 @@ Older assets like BTC and ETH use the X and Z prefixes, but newer ones like Sola
 
 **Coverage:** the parametrized test maps each pair to result_key, and includes SOLUSD to cover the exception.
 
-### Finding 3:  Out-of-range count silently returns 100 levels
+### 3.  Out-of-range count silently returns 100 levels
 
 The `count` parameter of the order book accepts values from 1 to 500. Any value outside that range returns 100 levels by default, with no error.
 
